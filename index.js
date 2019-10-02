@@ -19,7 +19,6 @@ var port = process.env.PORT || 8080;
 // mongoose.connect(config.local_database, {useNewUrlParser: true})
 mongoose.connect(config.mlab_database, {useNewUrlParser: true})
 
-
 //On Connection
 mongoose.connection.on('connected', () => {
     console.log('Connected to database')
