@@ -197,6 +197,39 @@ router.post('/reset-password/:token', (req, res, next) => {
     })
 })
 
+//Change Password
+router.post('/change-password/:id', (req, res, next) => {
+    const id = req.params.id;
+    const password = req.body.password;
+    const oldPassword = req.body.oldPassword;
+
+    User.getUserById(id, (err, user) => {
+        if (err) throw err;
+        if (!user) {
+            return res.json({ success: false, msg: 'Oops! No account with that id account exists' })
+        }
+        else {
+            User.comparePassword(oldPassword, user.password, (err, isMatch) => {
+                if (err) throw err;
+                if (!isMatch) {
+                    return res.json({ success: false, msg: 'The old password is not correct' })
+                }
+                else {
+                    bcrypt.genSalt(10, (err, salt) => {
+                        bcrypt.hash(password, salt, (err, hash) => {
+                            if (err) throw err;
+                            user.password = hash;
+                            user.save()
+                        })
+                        res.json({ success: true, msg: 'Password change was Successful' })
+                    })
+
+                }
+            })
+        }
+    })
+})
+
 
 
 // user profile
@@ -429,7 +462,7 @@ router.route('/appointment/presented/:id').get((req, res) => {
 router.route('/appointment/presenter/:id').get((req, res) => {
     Appointment.find({
         $and: [
-            { "presenter._id": req.params.id  },
+            { "presenter._id": req.params.id },
             { "appointmentSuccessful": false }
         ]
     }, (err, appointments) => {
@@ -446,7 +479,7 @@ router.route('/appointment/presenter/:id').get((req, res) => {
 router.route('/appointment/presenter/presented/:id').get((req, res) => {
     Appointment.find({
         $and: [
-            { "presenter._id": req.params.id  },
+            { "presenter._id": req.params.id },
             { "appointmentSuccessful": true }
         ]
     }, (err, appointments) => {
